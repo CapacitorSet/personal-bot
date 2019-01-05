@@ -1,6 +1,11 @@
 from subprocess import call
-
+import random
 import face_recognition
+from pkg_resources import resource_listdir, resource_filename
+import os
+
+emojis_path = resource_filename("plugins","emoji")
+emojis = list(filter(lambda x:".png" in x,resource_listdir("plugins","emoji")))
 
 class FryEmojiPlugin(object):
 	def __init__(self, bot):
@@ -31,7 +36,7 @@ class FryEmojiPlugin(object):
 		"""
 		faces = face_recognition.face_locations(face_recognition.load_image_file(input_path))
 		if (len(faces) == 0):
-			return path
+			return input_path
 
 		imagemagick_cmd = ["convert", input_path]
 		# Poor man's flatMap
@@ -51,7 +56,7 @@ class FryEmojiPlugin(object):
 		# For debug purposes, draw a rectangle over the face
 		# draw_str = 'rectangle %d,%d %d,%d' % (left, top, right, bottom)
 		# return ["-fill", "green", "-stroke", "black", "-draw", draw_str]
-		emoji_path = "/tmp/emoji.png"
+		emoji_path = pick_random_emoji()
 		emoji_width = 160
 		emoji_height = 160
 		# Increase the size by 20%. Account for proper centering.
@@ -62,3 +67,7 @@ class FryEmojiPlugin(object):
 		pos_str = "+%d+%d" % (left - diff_x, top - diff_y)
 		geometry_str = size_str + pos_str
 		return [emoji_path, "-geometry", geometry_str, "-composite"]
+
+def pick_random_emoji():
+	position = random.randint(0,len(emojis))
+	return os.path.join(emojis_path,emojis[position])
