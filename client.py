@@ -6,6 +6,7 @@ from telethon.errors import SessionPasswordNeededError
 from telethon.network import ConnectionTcpAbridged
 
 from plugins.FryPlugin import FryPlugin
+from plugins.FryEmojiPlugin import FryEmojiPlugin
 
 # Create a global variable to hold the loop we will be using
 loop = asyncio.get_event_loop()
@@ -66,6 +67,8 @@ class InteractiveTelegramClient(TelegramClient):
 						loop.run_until_complete(self.sign_in(password=pw))
 		fryPlugin = FryPlugin(self)
 		self.add_event_handler(fryPlugin.handler, events.NewMessage(pattern=fryPlugin.pattern))
+		fryEmojiPlugin = FryEmojiPlugin(self)
+		self.add_event_handler(fryEmojiPlugin.handler, events.NewMessage(pattern=fryEmojiPlugin.pattern))
 
 	async def refreshHistory(self, chat_id):
 		messages = await self.get_messages(chat_id, limit=200)
