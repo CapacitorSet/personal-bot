@@ -1,6 +1,15 @@
+from pkg_resources import resource_listdir, resource_filename
 from subprocess import call
-
 import face_recognition
+import os
+import random
+
+emojis_path = resource_filename("plugins", "emoji")
+emojis = list(filter(lambda x:".png" in x, resource_listdir("plugins", "emoji")))
+
+def pick_random_emoji():
+	position = random.randint(0, len(emojis)-1)
+	return os.path.join(emojis_path, emojis[position])
 
 class FryEmojiPlugin(object):
 	def __init__(self, bot):
@@ -8,16 +17,19 @@ class FryEmojiPlugin(object):
 		self.bot = bot
 
 	async def handler(self, event):
-		msg_id = event.reply_to_msg_id
-		if (event.reply_to_msg_id is None):
-			await event.reply("Rispondi a un'immagine per friggerla.")
-			return
-		await self.bot.refreshHistory(event.to_id)
-		photo_path = await self.bot.download_media_by_id(msg_id)
-		emojified_path = self.emojify(photo_path)
-		fried_path = self.fry(emojified_path)
-		await event.reply(file=fried_path)
-		call(["rm", fried_path])
+		try:
+			msg_id = event.reply_to_msg_id
+			if (event.reply_to_msg_id is None):
+				await event.reply("Rispondi a un'immagine per friggerla.")
+				return
+			await self.bot.refreshHistory(event.to_id)
+			photo_path = await self.bot.download_media_by_id(msg_id)
+			emojified_path = self.emojify(photo_path)
+			fried_path = self.fry(emojified_path)
+			await event.reply(file=fried_path)
+			call(["rm", fried_path])
+		except Exception as e:
+			print(e)
 
 	def fry(self, input_path):
 		# It's really a mess of options, but it works.
@@ -51,9 +63,7 @@ class FryEmojiPlugin(object):
 		# For debug purposes, draw a rectangle over the face
 		# draw_str = 'rectangle %d,%d %d,%d' % (left, top, right, bottom)
 		# return ["-fill", "green", "-stroke", "black", "-draw", draw_str]
-		emoji_path = "/tmp/emoji.png"
-		emoji_width = 160
-		emoji_height = 160
+		emoji_path = pick_random_emoji()
 		# Increase the size by 20%. Account for proper centering.
 		scale_factor = 0.20
 		size_str = "%dx%d" % ((right - left) * (1 + scale_factor), (bottom - top) * (1 + scale_factor))
